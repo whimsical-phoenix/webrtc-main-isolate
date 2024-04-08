@@ -38,8 +38,9 @@ export default function App({}) {
     Math.floor(100000 + Math.random() * 900000).toString(),
   );
   const otherUserId = useRef(null);
+  //thin air labs 192.168.1.207
 
-  const socket = SocketIOClient('http://192.168.1.88:3500', {
+  const socket = SocketIOClient('http://192.168.1.207:3500', {
     transports: ['websocket'],
     query: {
       callerId,
@@ -104,45 +105,65 @@ export default function App({}) {
       }
     });
 
-    let isFront = false;
+    let isFront = true;
 
-    mediaDevices.enumerateDevices().then(sourceInfos => {
-      let videoSourceId;
-      for (let i = 0; i < sourceInfos.length; i++) {
-        const sourceInfo = sourceInfos[i];
-        if (
-          sourceInfo.kind == 'videoinput' &&
-          sourceInfo.facing == (isFront ? 'user' : 'environment')
-        ) {
-          videoSourceId = sourceInfo.deviceId;
+    mediaDevices
+      .enumerateDevices()
+      .then(sourceInfos => {
+        let videoSourceId;
+        for (let i = 0; i < sourceInfos.length; i++) {
+          const sourceInfo = sourceInfos[i];
+          if (
+            sourceInfo.kind == 'videoinput' &&
+            sourceInfo.facing == (isFront ? 'user' : 'environment')
+          ) {
+            videoSourceId = sourceInfo.deviceId;
+          }
         }
-      }
 
-      mediaDevices
-        .getUserMedia({
-          audio: true,
-          video: {
-            mandatory: {
-              minWidth: 500, // Provide your own width, height and frame rate here
-              minHeight: 300,
-              minFrameRate: 30,
+        //   mediaDevices
+        //     .getUserMedia({
+        //       audio: true,
+        //       video: {
+        //         mandatory: {
+        //           minWidth: 500, // Provide your own width, height and frame rate here
+        //           minHeight: 300,
+        //           minFrameRate: 50,
+        //         },
+        //         facingMode: isFront ? 'user' : 'environment',
+        //         optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
+        //       },
+        //     })
+        //     .then(stream => {
+        //       // Got stream!
+
+        //       setlocalStream(stream);
+
+        //       // setup stream listening
+        //       peerConnection.current.addStream(stream);
+        //     })
+        //     .catch(error => {
+        //       // Log error
+        //     });
+        // });
+        mediaDevices
+          .getUserMedia({
+            audio: true,
+            video: {
+              facingMode: isFront ? 'user' : 'environment',
             },
-            facingMode: isFront ? 'user' : 'environment',
-            optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
-          },
-        })
-        .then(stream => {
-          // Got stream!
+          })
+          .then(stream => {
+            // Got stream!
+            setlocalStream(stream);
 
-          setlocalStream(stream);
-
-          // setup stream listening
-          peerConnection.current.addStream(stream);
-        })
-        .catch(error => {
-          // Log error
-        });
-    });
+            // setup stream listening
+            peerConnection.current.addStream(stream);
+          });
+      })
+      .catch(error => {
+        console.log('getUserMedia Error:', error); // Log any errors
+      });
 
     peerConnection.current.onaddstream = event => {
       setRemoteStream(event.stream);
